@@ -1,0 +1,1785 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>蜘蛛纸牌</title>
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  user-select: none;
+}
+
+body {
+  background: #1a6b3c;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* Top Bar */
+.top-bar {
+  background: linear-gradient(180deg, #0d4d2b, #0a3d22);
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 2px solid #083;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.top-bar-left, .top-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.top-bar h1 {
+  color: #fff;
+  font-size: 18px;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+  margin-right: 12px;
+}
+
+.top-bar button {
+  background: linear-gradient(180deg, #2a8a5a, #1e6b42);
+  color: #fff;
+  border: 1px solid #0a5;
+  padding: 6px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.top-bar button:hover {
+  background: linear-gradient(180deg, #3aaa6a, #2a8a52);
+  transform: translateY(-1px);
+}
+
+.top-bar button:active {
+  transform: translateY(0);
+}
+
+.top-bar button.danger {
+  background: linear-gradient(180deg, #c0392b, #96281b);
+  border-color: #a0291b;
+}
+
+.top-bar button.danger:hover {
+  background: linear-gradient(180deg, #e04030, #b0382b);
+}
+
+.info-display {
+  color: #afd9c0;
+  font-size: 13px;
+  display: flex;
+  gap: 16px;
+}
+
+.info-display span {
+  white-space: nowrap;
+}
+
+.info-display .label {
+  color: #7ab99a;
+}
+
+/* Difficulty Selector */
+.difficulty-selector {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.difficulty-selector label {
+  color: #afd9c0;
+  font-size: 13px;
+}
+
+.difficulty-selector select {
+  background: #1e6b42;
+  color: #fff;
+  border: 1px solid #0a5;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* Game Area */
+.game-container {
+  padding: 16px;
+  max-width: 1200px;
+  margin: 0 auto;
+  position: relative;
+}
+
+/* Columns */
+.columns-area {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 20px;
+  min-height: 500px;
+}
+
+.column {
+  width: 100px;
+  min-height: 140px;
+  background: rgba(0,0,0,0.15);
+  border-radius: 8px;
+  position: relative;
+  border: 2px dashed rgba(255,255,255,0.1);
+  transition: border-color 0.2s;
+}
+
+.column.drop-target {
+  border-color: rgba(255,255,200,0.5);
+  background: rgba(255,255,100,0.08);
+}
+
+/* Cards */
+.card {
+  width: 96px;
+  height: 134px;
+  border-radius: 8px;
+  position: absolute;
+  left: 2px;
+  cursor: pointer;
+  transition: box-shadow 0.2s, transform 0.15s;
+  background: #fff;
+  border: 1px solid #ccc;
+}
+
+.card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.card.selected {
+  box-shadow: 0 0 0 3px #FFD700, 0 6px 20px rgba(0,0,0,0.4);
+  transform: translateY(-4px);
+  z-index: 999 !important;
+}
+
+.card.face-down {
+  background: linear-gradient(135deg, #1a3a7a, #2a4a9a);
+  cursor: default;
+  border: 1px solid #0a2a6a;
+}
+
+.card.face-down::before {
+  content: '';
+  position: absolute;
+  top: 6px; left: 6px; right: 6px; bottom: 6px;
+  border: 2px solid rgba(255,255,255,0.15);
+  border-radius: 4px;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 5px,
+    rgba(255,255,255,0.03) 5px,
+    rgba(255,255,255,0.03) 10px
+  );
+}
+
+.card-inner {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 4px 6px;
+  position: relative;
+}
+
+.card-corner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.1;
+}
+
+.card-corner.bottom {
+  position: absolute;
+  bottom: 4px;
+  right: 6px;
+  transform: rotate(180deg);
+}
+
+.card-rank {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.card-suit-small {
+  font-size: 12px;
+}
+
+.card-center {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+}
+
+.card.red .card-rank,
+.card.red .card-suit-small,
+.card.red .card-center {
+  color: #c0392b;
+}
+
+.card.black .card-rank,
+.card.black .card-suit-small,
+.card.black .card-center {
+  color: #2c3e50;
+}
+
+/* Stock pile */
+.bottom-area {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 10px;
+}
+
+.stock-pile {
+  position: relative;
+  width: 100px;
+  height: 140px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.stock-pile:hover {
+  transform: scale(1.03);
+}
+
+.stock-card {
+  width: 96px;
+  height: 134px;
+  background: linear-gradient(135deg, #1a3a7a, #2a4a9a);
+  border-radius: 8px;
+  position: absolute;
+  border: 1px solid #0a2a6a;
+}
+
+.stock-card::before {
+  content: '';
+  position: absolute;
+  top: 6px; left: 6px; right: 6px; bottom: 6px;
+  border: 2px solid rgba(255,255,255,0.15);
+  border-radius: 4px;
+}
+
+.stock-count {
+  position: absolute;
+  bottom: -22px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #afd9c0;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+/* Completed area */
+.completed-area {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.completed-set {
+  width: 70px;
+  height: 98px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 6px;
+  border: 2px solid rgba(255,255,255,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  color: rgba(255,255,255,0.6);
+}
+
+/* Modal */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 10000;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-overlay.active {
+  display: flex;
+}
+
+.modal {
+  background: #f5f5f0;
+  border-radius: 12px;
+  padding: 30px;
+  max-width: 520px;
+  width: 90%;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+
+.modal h2 {
+  color: #1a6b3c;
+  margin-bottom: 16px;
+  font-size: 22px;
+  border-bottom: 2px solid #1a6b3c;
+  padding-bottom: 8px;
+}
+
+.modal .stat-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #e0e0d8;
+  font-size: 15px;
+}
+
+.modal .stat-row .stat-label {
+  color: #555;
+}
+
+.modal .stat-row .stat-value {
+  color: #1a6b3c;
+  font-weight: bold;
+}
+
+.modal button {
+  background: linear-gradient(180deg, #2a8a5a, #1e6b42);
+  color: #fff;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 15px;
+  margin-top: 16px;
+  transition: all 0.2s;
+}
+
+.modal button:hover {
+  background: linear-gradient(180deg, #3aaa6a, #2a8a52);
+}
+
+/* Toast notification */
+.toast {
+  position: fixed;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-20px);
+  background: rgba(0,0,0,0.85);
+  color: #fff;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  z-index: 20000;
+  opacity: 0;
+  transition: all 0.3s;
+  pointer-events: none;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Win animation */
+.win-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 15000;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.win-overlay.active {
+  display: flex;
+}
+
+.win-text {
+  font-size: 64px;
+  color: #FFD700;
+  text-shadow: 0 4px 20px rgba(255,215,0,0.6);
+  animation: winPulse 1s ease-in-out infinite alternate;
+  margin-bottom: 20px;
+}
+
+@keyframes winPulse {
+  from { transform: scale(1); }
+  to { transform: scale(1.1); }
+}
+
+.win-stats {
+  color: #fff;
+  font-size: 18px;
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.win-overlay button {
+  background: linear-gradient(180deg, #FFD700, #FFA500);
+  color: #333;
+  border: none;
+  padding: 14px 36px;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.win-overlay button:hover {
+  transform: scale(1.05);
+}
+
+/* Shortcuts help */
+.shortcuts-info {
+  color: #7ab99a;
+  font-size: 11px;
+  text-align: center;
+  padding: 6px;
+  background: rgba(0,0,0,0.15);
+}
+
+/* Drag ghost */
+.drag-ghost {
+  position: fixed;
+  pointer-events: none;
+  z-index: 50000;
+  opacity: 0.9;
+}
+
+.drag-ghost .card {
+  position: relative !important;
+  left: 0 !important;
+  margin-top: -110px;
+}
+
+.drag-ghost .card:first-child {
+  margin-top: 0;
+}
+
+/* Responsive */
+@media (max-width: 1100px) {
+  .column { width: 85px; }
+  .card { width: 81px; height: 113px; }
+  .card-center { font-size: 28px; }
+  .card-rank { font-size: 14px; }
+  .stock-card, .stock-pile { width: 81px; }
+  .stock-card { height: 113px; }
+}
+
+@media (max-width: 900px) {
+  .column { width: 72px; }
+  .card { width: 68px; height: 95px; }
+  .card-center { font-size: 22px; }
+  .card-rank { font-size: 12px; }
+  .card-suit-small { font-size: 10px; }
+  .columns-area { gap: 4px; }
+}
+
+/* Save slot list */
+.save-slot-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.save-slot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  margin: 6px 0;
+  background: #fff;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.save-slot:hover {
+  border-color: #1a6b3c;
+  background: #f0f8f0;
+}
+
+.save-slot .slot-info {
+  flex: 1;
+}
+
+.save-slot .slot-name {
+  font-weight: bold;
+  color: #333;
+}
+
+.save-slot .slot-detail {
+  font-size: 12px;
+  color: #888;
+  margin-top: 2px;
+}
+
+.save-slot .slot-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.save-slot .slot-actions button {
+  margin-top: 0;
+  padding: 5px 12px;
+  font-size: 12px;
+}
+
+.slot-actions .del-btn {
+  background: linear-gradient(180deg, #e74c3c, #c0392b);
+}
+
+.score-display {
+  color: #FFD700;
+  font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+
+<div class="top-bar">
+  <div class="top-bar-left">
+    <h1>🕷️ 蜘蛛纸牌</h1>
+    <div class="difficulty-selector">
+      <label>难度:</label>
+      <select id="difficultySelect">
+        <option value="1">简单 (单色)</option>
+        <option value="2" selected>中等 (双色)</option>
+        <option value="4">困难 (四色)</option>
+      </select>
+    </div>
+    <button onclick="confirmNewGame()">新游戏</button>
+    <button onclick="undoAction()">↩ 撤销</button>
+    <button onclick="redoAction()">↪ 重做</button>
+    <button onclick="showSaveModal()">💾 存档</button>
+    <button onclick="showLoadModal()">📂 读档</button>
+    <button onclick="showStatsModal()">📊 统计</button>
+    <button onclick="showHelpModal()">❓ 帮助</button>
+  </div>
+  <div class="top-bar-right">
+    <div class="info-display">
+      <span><span class="label">步数:</span> <span id="moveCount">0</span></span>
+      <span><span class="label">分数:</span> <span id="scoreDisplay" class="score-display">500</span></span>
+      <span><span class="label">时间:</span> <span id="timeDisplay">00:00</span></span>
+    </div>
+  </div>
+</div>
+
+<div class="shortcuts-info">
+  快捷键: Ctrl+Z 撤销 | Ctrl+Y 重做 | Ctrl+S 存档 | Ctrl+L 读档 | Ctrl+N 新游戏
+</div>
+
+<div class="game-container">
+  <div class="columns-area" id="columnsArea"></div>
+  <div class="bottom-area">
+    <div class="stock-pile" id="stockPile" onclick="dealFromStock()">
+      <div class="stock-count" id="stockCount">剩余: 50</div>
+    </div>
+    <div class="completed-area" id="completedArea"></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Win Overlay -->
+<div class="win-overlay" id="winOverlay">
+  <div class="win-text">🎉 恭喜通关！🎉</div>
+  <div class="win-stats" id="winStats"></div>
+  <button onclick="closeWin(); confirmNewGame();">再来一局</button>
+</div>
+
+<!-- Stats Modal -->
+<div class="modal-overlay" id="statsModal">
+  <div class="modal">
+    <h2>📊 游戏统计</h2>
+    <div id="statsContent"></div>
+    <button onclick="closeModal('statsModal')">关闭</button>
+    <button onclick="confirmResetStats()" style="background:linear-gradient(180deg,#e74c3c,#c0392b);margin-left:8px;">重置统计</button>
+  </div>
+</div>
+
+<!-- Save Modal -->
+<div class="modal-overlay" id="saveModal">
+  <div class="modal">
+    <h2>💾 存档管理</h2>
+    <div style="margin-bottom:12px;">
+      <input type="text" id="saveNameInput" placeholder="输入存档名称（可选）"
+        style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;font-size:14px;">
+    </div>
+    <button onclick="saveGame()">保存当前游戏</button>
+    <hr style="margin:16px 0;border-color:#ddd;">
+    <h3 style="margin-bottom:8px;color:#555;">已有存档：</h3>
+    <div class="save-slot-list" id="saveSlotList"></div>
+    <button onclick="closeModal('saveModal')" style="margin-top:12px;">关闭</button>
+  </div>
+</div>
+
+<!-- Load Modal -->
+<div class="modal-overlay" id="loadModal">
+  <div class="modal">
+    <h2>📂 读取存档</h2>
+    <div class="save-slot-list" id="loadSlotList"></div>
+    <button onclick="closeModal('loadModal')" style="margin-top:12px;">关闭</button>
+  </div>
+</div>
+
+<!-- Help Modal -->
+<div class="modal-overlay" id="helpModal">
+  <div class="modal">
+    <h2>❓ 游戏规则与帮助</h2>
+    <div style="line-height:1.8;font-size:14px;color:#444;">
+      <p><strong>目标：</strong>将所有牌按照从 K 到 A 的顺序整理成完整序列并移除。</p>
+      <p><strong>移动规则：</strong></p>
+      <ul style="margin-left:20px;margin-bottom:12px;">
+        <li>可以将一张牌移到比它大1点的牌上面（不限花色）</li>
+        <li>只有同花色的连续递减序列才能一起移动</li>
+        <li>空列可以放任意牌或序列</li>
+        <li>当一列中形成了从 K 到 A 的同花色完整序列，该序列自动移除</li>
+      </ul>
+      <p><strong>发牌：</strong>点击左下角的牌堆发牌，每次给每列各发一张。发牌时所有列都不能为空。</p>
+      <p><strong>难度：</strong></p>
+      <ul style="margin-left:20px;margin-bottom:12px;">
+        <li>简单（单色）：使用一种花色</li>
+        <li>中等（双色）：使用两种花色</li>
+        <li>困难（四色）：使用四种花色</li>
+      </ul>
+      <p><strong>计分：</strong>初始500分。每次移动-1分。完成一组+100分。撤销-1分。</p>
+      <p><strong>快捷键：</strong></p>
+      <ul style="margin-left:20px;">
+        <li>Ctrl+Z：撤销</li>
+        <li>Ctrl+Y：重做</li>
+        <li>Ctrl+S：存档</li>
+        <li>Ctrl+L：读档</li>
+        <li>Ctrl+N：新游戏</li>
+      </ul>
+    </div>
+    <button onclick="closeModal('helpModal')">关闭</button>
+  </div>
+</div>
+
+<script>
+// ============ Constants ============
+const SUITS = ['♠', '♥', '♦', '♣'];
+const SUIT_COLORS = {'♠':'black','♣':'black','♥':'red','♦':'red'};
+const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+const RANK_VALUES = {};
+RANKS.forEach((r,i) => RANK_VALUES[r] = i + 1);
+
+// ============ Game State ============
+let gameState = {
+  columns: [],       // 10 columns, each is array of {rank, suit, faceUp}
+  stock: [],         // remaining cards to deal
+  completed: [],     // completed suits
+  moves: 0,
+  score: 500,
+  difficulty: 2,
+  gameStarted: false,
+  gameOver: false,
+  startTime: null,
+  elapsedSeconds: 0,
+  gameId: null       // unique id for this game
+};
+
+let undoStack = [];
+let redoStack = [];
+let selectedCards = null; // {colIndex, cardIndex}
+let timerInterval = null;
+
+// ============ Statistics ============
+let stats = loadStats();
+
+function defaultStats() {
+  return {
+    totalGames: 0,
+    wins: 0,
+    losses: 0,
+    currentStreak: 0,   // positive = wins, negative = losses
+    maxWinStreak: 0,
+    maxLoseStreak: 0,
+    bestScore: {1: null, 2: null, 4: null},
+    bestTime: {1: null, 2: null, 4: null},
+    totalMoves: 0,
+    totalTime: 0,
+    byDifficulty: {
+      1: {games:0, wins:0},
+      2: {games:0, wins:0},
+      4: {games:0, wins:0}
+    }
+  };
+}
+
+function loadStats() {
+  try {
+    const s = localStorage.getItem('spider_stats');
+    if (s) {
+      let parsed = JSON.parse(s);
+      // Ensure all fields exist
+      let def = defaultStats();
+      for (let k in def) {
+        if (!(k in parsed)) parsed[k] = def[k];
+      }
+      return parsed;
+    }
+  } catch(e) {}
+  return defaultStats();
+}
+
+function saveStats() {
+  localStorage.setItem('spider_stats', JSON.stringify(stats));
+}
+
+// ============ Init ============
+function init() {
+  const savedDiff = localStorage.getItem('spider_difficulty');
+  if (savedDiff) {
+    document.getElementById('difficultySelect').value = savedDiff;
+  }
+  startNewGame();
+}
+
+function confirmNewGame() {
+  if (gameState.gameStarted && !gameState.gameOver) {
+    if (!confirm('当前游戏尚未结束，确定要开始新游戏吗？\n（当前游戏将记为失败）')) return;
+    recordLoss();
+  }
+  startNewGame();
+}
+
+function startNewGame() {
+  stopTimer();
+
+  const diff = parseInt(document.getElementById('difficultySelect').value);
+  localStorage.setItem('spider_difficulty', diff);
+
+  gameState = {
+    columns: Array.from({length:10}, ()=>[]),
+    stock: [],
+    completed: [],
+    moves: 0,
+    score: 500,
+    difficulty: diff,
+    gameStarted: true,
+    gameOver: false,
+    startTime: Date.now(),
+    elapsedSeconds: 0,
+    gameId: Date.now().toString(36) + Math.random().toString(36).substr(2,5)
+  };
+
+  undoStack = [];
+  redoStack = [];
+  selectedCards = null;
+
+  // Create deck
+  let deck = createDeck(diff);
+  shuffle(deck);
+
+  // Deal initial cards
+  // First 4 columns get 6 cards, last 6 columns get 5 cards
+  // Only top card face up
+  let idx = 0;
+  for (let col = 0; col < 10; col++) {
+    const count = col < 4 ? 6 : 5;
+    for (let i = 0; i < count; i++) {
+      const card = deck[idx++];
+      card.faceUp = (i === count - 1);
+      gameState.columns[col].push(card);
+    }
+  }
+
+  // Remaining go to stock
+  gameState.stock = deck.slice(idx);
+
+  // Update stats
+  stats.totalGames++;
+  stats.byDifficulty[diff].games++;
+  saveStats();
+
+  // Auto-save at game start
+  autoSave();
+
+  render();
+  startTimer();
+  showToast('新游戏开始！已自动存档。');
+}
+
+function createDeck(suitCount) {
+  let suits;
+  switch(suitCount) {
+    case 1: suits = [SUITS[0]]; break;
+    case 2: suits = [SUITS[0], SUITS[1]]; break;
+    case 4: suits = [...SUITS]; break;
+    default: suits = [SUITS[0], SUITS[1]];
+  }
+
+  let deck = [];
+  const decksNeeded = 8 / suits.length; // Always 104 cards total with 8 full sets
+  for (let d = 0; d < decksNeeded; d++) {
+    for (let s of suits) {
+      for (let r of RANKS) {
+        deck.push({rank: r, suit: s, faceUp: false});
+      }
+    }
+  }
+  return deck;
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
+
+// ============ Timer ============
+function startTimer() {
+  stopTimer();
+  timerInterval = setInterval(() => {
+    if (gameState.gameStarted && !gameState.gameOver) {
+      gameState.elapsedSeconds = Math.floor((Date.now() - gameState.startTime) / 1000);
+      updateTimeDisplay();
+    }
+  }, 1000);
+}
+
+function stopTimer() {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+}
+
+function updateTimeDisplay() {
+  const s = gameState.elapsedSeconds;
+  const min = Math.floor(s / 60);
+  const sec = s % 60;
+  document.getElementById('timeDisplay').textContent =
+    String(min).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
+}
+
+// ============ Rendering ============
+function render() {
+  renderColumns();
+  renderStock();
+  renderCompleted();
+  document.getElementById('moveCount').textContent = gameState.moves;
+  document.getElementById('scoreDisplay').textContent = gameState.score;
+  updateTimeDisplay();
+}
+
+function renderColumns() {
+  const area = document.getElementById('columnsArea');
+  area.innerHTML = '';
+
+  for (let ci = 0; ci < 10; ci++) {
+    const colDiv = document.createElement('div');
+    colDiv.className = 'column';
+    colDiv.dataset.col = ci;
+
+    const col = gameState.columns[ci];
+    const overlap = col.length > 0 ? Math.min(24, Math.max(14, 450 / col.length)) : 24;
+
+    col.forEach((card, ri) => {
+      const cardEl = createCardElement(card, ci, ri);
+      cardEl.style.top = (ri * overlap) + 'px';
+      cardEl.style.zIndex = ri + 1;
+
+      if (selectedCards && selectedCards.colIndex === ci && ri >= selectedCards.cardIndex) {
+        cardEl.classList.add('selected');
+      }
+
+      colDiv.appendChild(cardEl);
+    });
+
+    // Set column height
+    if (col.length > 0) {
+      colDiv.style.minHeight = ((col.length - 1) * overlap + 134) + 'px';
+    }
+
+    // Drop target events
+    colDiv.addEventListener('dragover', handleDragOver);
+    colDiv.addEventListener('dragleave', handleDragLeave);
+    colDiv.addEventListener('drop', handleDrop);
+    colDiv.addEventListener('click', handleColumnClick);
+
+    area.appendChild(colDiv);
+  }
+}
+
+function createCardElement(card, colIndex, cardIndex) {
+  const el = document.createElement('div');
+  el.className = 'card';
+  el.dataset.col = colIndex;
+  el.dataset.idx = cardIndex;
+
+  if (!card.faceUp) {
+    el.classList.add('face-down');
+    return el;
+  }
+
+  const color = SUIT_COLORS[card.suit];
+  el.classList.add(color);
+
+  el.innerHTML = `
+    <div class="card-inner">
+      <div class="card-corner">
+        <span class="card-rank">${card.rank}</span>
+        <span class="card-suit-small">${card.suit}</span>
+      </div>
+      <div class="card-center">${card.suit}</div>
+      <div class="card-corner bottom">
+        <span class="card-rank">${card.rank}</span>
+        <span class="card-suit-small">${card.suit}</span>
+      </div>
+    </div>
+  `;
+
+  // Draggable
+  if (canPickUp(colIndex, cardIndex)) {
+    el.draggable = true;
+    el.addEventListener('dragstart', handleDragStart);
+    el.addEventListener('dragend', handleDragEnd);
+  }
+
+  el.addEventListener('click', (e) => {
+    e.stopPropagation();
+    handleCardClick(colIndex, cardIndex);
+  });
+
+  return el;
+}
+
+function renderStock() {
+  const pile = document.getElementById('stockPile');
+  pile.innerHTML = '';
+
+  const remaining = Math.ceil(gameState.stock.length / 10);
+
+  for (let i = 0; i < Math.min(remaining, 5); i++) {
+    const sc = document.createElement('div');
+    sc.className = 'stock-card';
+    sc.style.left = (i * 3) + 'px';
+    sc.style.top = (-i * 2) + 'px';
+    pile.appendChild(sc);
+  }
+
+  const countEl = document.createElement('div');
+  countEl.className = 'stock-count';
+  countEl.id = 'stockCount';
+  countEl.textContent = `剩余: ${gameState.stock.length}张 (${remaining}轮)`;
+  pile.appendChild(countEl);
+
+  if (gameState.stock.length === 0) {
+    pile.style.opacity = '0.3';
+    pile.style.cursor = 'default';
+  } else {
+    pile.style.opacity = '1';
+    pile.style.cursor = 'pointer';
+  }
+}
+
+function renderCompleted() {
+  const area = document.getElementById('completedArea');
+  area.innerHTML = '';
+
+  gameState.completed.forEach(suit => {
+    const div = document.createElement('div');
+    div.className = 'completed-set';
+    div.textContent = suit;
+    area.appendChild(div);
+  });
+
+  // Placeholder for remaining
+  for (let i = gameState.completed.length; i < 8; i++) {
+    const div = document.createElement('div');
+    div.className = 'completed-set';
+    div.style.opacity = '0.3';
+    div.textContent = '?';
+    area.appendChild(div);
+  }
+}
+
+// ============ Card Logic ============
+function canPickUp(colIndex, cardIndex) {
+  const col = gameState.columns[colIndex];
+  if (!col[cardIndex] || !col[cardIndex].faceUp) return false;
+
+  // Check if cards from cardIndex to end form a valid same-suit descending sequence
+  for (let i = cardIndex; i < col.length - 1; i++) {
+    if (col[i].suit !== col[i+1].suit) return false;
+    if (RANK_VALUES[col[i].rank] !== RANK_VALUES[col[i+1].rank] + 1) return false;
+  }
+  return true;
+}
+
+function canPlace(fromCol, fromIdx, toCol) {
+  const targetColumn = gameState.columns[toCol];
+  if (targetColumn.length === 0) return true; // Empty column accepts anything
+
+  const topCard = targetColumn[targetColumn.length - 1];
+  const movingCard = gameState.columns[fromCol][fromIdx];
+
+  if (!topCard.faceUp) return false;
+
+  // Must be descending by 1
+  return RANK_VALUES[topCard.rank] === RANK_VALUES[movingCard.rank] + 1;
+}
+
+function moveCards(fromCol, fromIdx, toCol) {
+  if (fromCol === toCol) return false;
+  if (!canPickUp(fromCol, fromIdx)) return false;
+  if (!canPlace(fromCol, fromIdx, toCol)) return false;
+
+  // Save state for undo
+  pushUndo();
+
+  const cards = gameState.columns[fromCol].splice(fromIdx);
+  gameState.columns[toCol].push(...cards);
+
+  // Flip card if needed
+  flipTopCard(fromCol);
+
+  gameState.moves++;
+  gameState.score = Math.max(0, gameState.score - 1);
+
+  // Check for completed sequence
+  checkCompleted(toCol);
+
+  selectedCards = null;
+  redoStack = [];
+  render();
+  return true;
+}
+
+function flipTopCard(colIndex) {
+  const col = gameState.columns[colIndex];
+  if (col.length > 0 && !col[col.length - 1].faceUp) {
+    col[col.length - 1].faceUp = true;
+  }
+}
+
+function checkCompleted(colIndex) {
+  const col = gameState.columns[colIndex];
+  if (col.length < 13) return;
+
+  // Check if the last 13 cards form K-A same suit sequence
+  const startIdx = col.length - 13;
+  const suit = col[startIdx].suit;
+
+  for (let i = 0; i < 13; i++) {
+    const card = col[startIdx + i];
+    if (!card.faceUp) return;
+    if (card.suit !== suit) return;
+    if (RANK_VALUES[card.rank] !== 13 - i) return;
+  }
+
+  // Complete! Remove cards
+  col.splice(startIdx, 13);
+  gameState.completed.push(suit);
+  gameState.score += 100;
+
+  // Flip top card of this column
+  flipTopCard(colIndex);
+
+  showToast(`完成一组 ${suit}！+100分`);
+
+  // Check win
+  if (gameState.completed.length === 8) {
+    handleWin();
+  }
+}
+
+function dealFromStock() {
+  if (gameState.stock.length === 0) {
+    showToast('没有更多牌可以发了！');
+    return;
+  }
+  if (gameState.gameOver) return;
+
+  // Check all columns have at least one card
+  for (let i = 0; i < 10; i++) {
+    if (gameState.columns[i].length === 0) {
+      showToast('发牌前所有列都不能为空！');
+      return;
+    }
+  }
+
+  pushUndo();
+
+  // Deal one card to each column
+  for (let i = 0; i < 10; i++) {
+    if (gameState.stock.length > 0) {
+      const card = gameState.stock.pop();
+      card.faceUp = true;
+      gameState.columns[i].push(card);
+    }
+  }
+
+  gameState.moves++;
+  gameState.score = Math.max(0, gameState.score - 1);
+  redoStack = [];
+
+  // Check completed for all columns
+  for (let i = 0; i < 10; i++) {
+    checkCompleted(i);
+  }
+
+  selectedCards = null;
+  render();
+}
+
+// ============ Click & Drag Handling ============
+function handleCardClick(colIndex, cardIndex) {
+  if (gameState.gameOver) return;
+
+  const card = gameState.columns[colIndex][cardIndex];
+  if (!card.faceUp) return;
+
+  if (selectedCards) {
+    if (selectedCards.colIndex === colIndex && selectedCards.cardIndex === cardIndex) {
+      // Deselect
+      selectedCards = null;
+      render();
+      return;
+    }
+
+    // Try to move
+    if (moveCards(selectedCards.colIndex, selectedCards.cardIndex, colIndex)) {
+      return;
+    }
+
+    // Select new if possible
+    if (canPickUp(colIndex, cardIndex)) {
+      selectedCards = {colIndex, cardIndex};
+      render();
+    } else {
+      selectedCards = null;
+      render();
+    }
+  } else {
+    if (canPickUp(colIndex, cardIndex)) {
+      selectedCards = {colIndex, cardIndex};
+      render();
+    }
+  }
+}
+
+function handleColumnClick(e) {
+  if (gameState.gameOver) return;
+
+  const colIndex = parseInt(e.currentTarget.dataset.col);
+  const col = gameState.columns[colIndex];
+
+  if (col.length === 0 && selectedCards) {
+    moveCards(selectedCards.colIndex, selectedCards.cardIndex, colIndex);
+  } else if (!selectedCards) {
+    // Click on empty column, do nothing
+  }
+}
+
+// Drag & Drop
+let dragData = null;
+
+function handleDragStart(e) {
+  const colIndex = parseInt(e.target.dataset.col);
+  const cardIndex = parseInt(e.target.dataset.idx);
+
+  if (!canPickUp(colIndex, cardIndex)) {
+    e.preventDefault();
+    return;
+  }
+
+  dragData = {colIndex, cardIndex};
+  selectedCards = {colIndex, cardIndex};
+
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', '');
+
+  // Create drag image
+  const ghost = document.createElement('div');
+  ghost.className = 'drag-ghost';
+  const col = gameState.columns[colIndex];
+  for (let i = cardIndex; i < col.length; i++) {
+    const cardEl = createCardElement(col[i], colIndex, i);
+    cardEl.style.position = 'relative';
+    cardEl.style.top = '0';
+    cardEl.style.marginTop = i === cardIndex ? '0' : '-90px';
+    ghost.appendChild(cardEl);
+  }
+  document.body.appendChild(ghost);
+  e.dataTransfer.setDragImage(ghost, 48, 20);
+  setTimeout(() => ghost.remove(), 0);
+
+  render();
+}
+
+function handleDragEnd(e) {
+  dragData = null;
+  document.querySelectorAll('.column').forEach(c => c.classList.remove('drop-target'));
+}
+
+function handleDragOver(e) {
+  e.preventDefault();
+  if (!dragData) return;
+
+  const toCol = parseInt(e.currentTarget.dataset.col);
+  if (toCol === dragData.colIndex) return;
+
+  if (canPlace(dragData.colIndex, dragData.cardIndex, toCol)) {
+    e.currentTarget.classList.add('drop-target');
+    e.dataTransfer.dropEffect = 'move';
+  }
+}
+
+function handleDragLeave(e) {
+  e.currentTarget.classList.remove('drop-target');
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drop-target');
+
+  if (!dragData) return;
+
+  const toCol = parseInt(e.currentTarget.dataset.col);
+  moveCards(dragData.colIndex, dragData.cardIndex, toCol);
+  dragData = null;
+}
+
+// ============ Undo / Redo ============
+function pushUndo() {
+  undoStack.push(cloneState());
+  // Limit undo stack
+  if (undoStack.length > 200) undoStack.shift();
+}
+
+function cloneState() {
+  return JSON.parse(JSON.stringify({
+    columns: gameState.columns,
+    stock: gameState.stock,
+    completed: gameState.completed,
+    moves: gameState.moves,
+    score: gameState.score
+  }));
+}
+
+function undoAction() {
+  if (undoStack.length === 0) {
+    showToast('没有可以撤销的操作');
+    return;
+  }
+
+  redoStack.push(cloneState());
+  const prev = undoStack.pop();
+
+  gameState.columns = prev.columns;
+  gameState.stock = prev.stock;
+  gameState.completed = prev.completed;
+  gameState.moves = prev.moves;
+  gameState.score = Math.max(0, prev.score - 1); // Penalty for undo
+
+  selectedCards = null;
+  render();
+  showToast('已撤销');
+}
+
+function redoAction() {
+  if (redoStack.length === 0) {
+    showToast('没有可以重做的操作');
+    return;
+  }
+
+  undoStack.push(cloneState());
+  const next = redoStack.pop();
+
+  gameState.columns = next.columns;
+  gameState.stock = next.stock;
+  gameState.completed = next.completed;
+  gameState.moves = next.moves;
+  gameState.score = next.score;
+
+  selectedCards = null;
+  render();
+  showToast('已重做');
+}
+
+// ============ Win / Loss ============
+function handleWin() {
+  gameState.gameOver = true;
+  stopTimer();
+
+  const diff = gameState.difficulty;
+  stats.wins++;
+  stats.byDifficulty[diff].wins++;
+  stats.totalMoves += gameState.moves;
+  stats.totalTime += gameState.elapsedSeconds;
+
+  // Streak
+  if (stats.currentStreak >= 0) {
+    stats.currentStreak++;
+  } else {
+    stats.currentStreak = 1;
+  }
+  stats.maxWinStreak = Math.max(stats.maxWinStreak, stats.currentStreak);
+
+  // Best score
+  if (stats.bestScore[diff] === null || gameState.score > stats.bestScore[diff]) {
+    stats.bestScore[diff] = gameState.score;
+  }
+
+  // Best time
+  if (stats.bestTime[diff] === null || gameState.elapsedSeconds < stats.bestTime[diff]) {
+    stats.bestTime[diff] = gameState.elapsedSeconds;
+  }
+
+  saveStats();
+
+  // Show win overlay
+  const timeStr = formatTime(gameState.elapsedSeconds);
+  document.getElementById('winStats').innerHTML = `
+    得分: ${gameState.score} | 步数: ${gameState.moves} | 用时: ${timeStr}<br>
+    难度: ${difficultyName(diff)} | 连胜: ${stats.currentStreak}
+  `;
+  document.getElementById('winOverlay').classList.add('active');
+}
+
+function recordLoss() {
+  if (!gameState.gameStarted || gameState.gameOver) return;
+
+  gameState.gameOver = true;
+  stopTimer();
+
+  stats.losses++;
+  stats.totalMoves += gameState.moves;
+  stats.totalTime += gameState.elapsedSeconds;
+
+  if (stats.currentStreak <= 0) {
+    stats.currentStreak--;
+  } else {
+    stats.currentStreak = -1;
+  }
+  stats.maxLoseStreak = Math.max(stats.maxLoseStreak, Math.abs(stats.currentStreak));
+
+  saveStats();
+}
+
+function closeWin() {
+  document.getElementById('winOverlay').classList.remove('active');
+}
+
+// ============ Save / Load ============
+function autoSave() {
+  const saves = getSaves();
+  // Auto-save with special prefix
+  const key = 'auto_' + gameState.gameId;
+  saves[key] = {
+    name: '自动存档',
+    time: new Date().toLocaleString(),
+    state: serializeFullState(),
+    difficulty: gameState.difficulty,
+    auto: true
+  };
+
+  // Keep only last 3 auto saves
+  const autoKeys = Object.keys(saves).filter(k => saves[k].auto).sort();
+  while (autoKeys.length > 3) {
+    delete saves[autoKeys.shift()];
+  }
+
+  localStorage.setItem('spider_saves', JSON.stringify(saves));
+}
+
+function saveGame(slotName) {
+  const name = slotName || document.getElementById('saveNameInput')?.value || '';
+  const saveName = name.trim() || `存档 ${new Date().toLocaleString()}`;
+
+  const saves = getSaves();
+  const key = 'save_' + Date.now();
+  saves[key] = {
+    name: saveName,
+    time: new Date().toLocaleString(),
+    state: serializeFullState(),
+    difficulty: gameState.difficulty,
+    auto: false
+  };
+
+  localStorage.setItem('spider_saves', JSON.stringify(saves));
+
+  if (document.getElementById('saveNameInput')) {
+    document.getElementById('saveNameInput').value = '';
+  }
+
+  showToast(`已保存: ${saveName}`);
+  closeModal('saveModal');
+}
+
+function loadGame(key) {
+  const saves = getSaves();
+  if (!saves[key]) {
+    showToast('存档不存在！');
+    return;
+  }
+
+  if (gameState.gameStarted && !gameState.gameOver) {
+    if (!confirm('加载存档将丢失当前游戏进度，确定吗？')) return;
+    // Don't record as loss when loading save
+  }
+
+  const save = saves[key];
+  deserializeFullState(save.state);
+
+  undoStack = [];
+  redoStack = [];
+  selectedCards = null;
+
+  // Recalculate elapsed
+  if (gameState.startTime) {
+    // Keep original startTime, adjust for saved elapsed
+    gameState.startTime = Date.now() - (gameState.elapsedSeconds * 1000);
+  }
+
+  document.getElementById('difficultySelect').value = gameState.difficulty;
+
+  render();
+  startTimer();
+  closeModal('loadModal');
+  showToast(`已加载: ${save.name}`);
+}
+
+function deleteSave(key) {
+  if (!confirm('确定删除此存档？')) return;
+  const saves = getSaves();
+  delete saves[key];
+  localStorage.setItem('spider_saves', JSON.stringify(saves));
+  showSaveModal();
+  showToast('存档已删除');
+}
+
+function getSaves() {
+  try {
+    return JSON.parse(localStorage.getItem('spider_saves') || '{}');
+  } catch(e) {
+    return {};
+  }
+}
+
+function serializeFullState() {
+  return JSON.stringify({
+    columns: gameState.columns,
+    stock: gameState.stock,
+    completed: gameState.completed,
+    moves: gameState.moves,
+    score: gameState.score,
+    difficulty: gameState.difficulty,
+    gameStarted: gameState.gameStarted,
+    gameOver: gameState.gameOver,
+    elapsedSeconds: gameState.elapsedSeconds,
+    gameId: gameState.gameId
+  });
+}
+
+function deserializeFullState(str) {
+  const data = JSON.parse(str);
+  gameState.columns = data.columns;
+  gameState.stock = data.stock;
+  gameState.completed = data.completed;
+  gameState.moves = data.moves;
+  gameState.score = data.score;
+  gameState.difficulty = data.difficulty;
+  gameState.gameStarted = data.gameStarted;
+  gameState.gameOver = data.gameOver || false;
+  gameState.elapsedSeconds = data.elapsedSeconds || 0;
+  gameState.startTime = Date.now() - (gameState.elapsedSeconds * 1000);
+  gameState.gameId = data.gameId;
+}
+
+// ============ Modals ============
+function showSaveModal() {
+  const saves = getSaves();
+  const list = document.getElementById('saveSlotList');
+  list.innerHTML = '';
+
+  const keys = Object.keys(saves).sort((a,b) => {
+    // Manual saves first, then auto
+    if (saves[a].auto !== saves[b].auto) return saves[a].auto ? 1 : -1;
+    return b.localeCompare(a);
+  });
+
+  if (keys.length === 0) {
+    list.innerHTML = '<p style="color:#888;text-align:center;padding:20px;">暂无存档</p>';
+  } else {
+    keys.forEach(key => {
+      const s = saves[key];
+      const div = document.createElement('div');
+      div.className = 'save-slot';
+      div.innerHTML = `
+        <div class="slot-info">
+          <div class="slot-name">${s.auto ? '🔄 ' : '💾 '}${s.name}</div>
+          <div class="slot-detail">${s.time} | ${difficultyName(s.difficulty)}</div>
+        </div>
+        <div class="slot-actions">
+          <button onclick="event.stopPropagation();deleteSave('${key}');showSaveModal();" class="del-btn">删除</button>
+        </div>
+      `;
+      list.appendChild(div);
+    });
+  }
+
+  openModal('saveModal');
+}
+
+function showLoadModal() {
+  const saves = getSaves();
+  const list = document.getElementById('loadSlotList');
+  list.innerHTML = '';
+
+  const keys = Object.keys(saves).sort((a,b) => {
+    if (saves[a].auto !== saves[b].auto) return saves[a].auto ? 1 : -1;
+    return b.localeCompare(a);
+  });
+
+  if (keys.length === 0) {
+    list.innerHTML = '<p style="color:#888;text-align:center;padding:20px;">暂无存档</p>';
+  } else {
+    keys.forEach(key => {
+      const s = saves[key];
+      const div = document.createElement('div');
+      div.className = 'save-slot';
+      div.style.cursor = 'pointer';
+      div.onclick = () => loadGame(key);
+      div.innerHTML = `
+        <div class="slot-info">
+          <div class="slot-name">${s.auto ? '🔄 ' : '💾 '}${s.name}</div>
+          <div class="slot-detail">${s.time} | ${difficultyName(s.difficulty)}</div>
+        </div>
+        <div class="slot-actions">
+          <button onclick="event.stopPropagation();loadGame('${key}');"
+            style="background:linear-gradient(180deg,#3498db,#2980b9);">加载</button>
+          <button onclick="event.stopPropagation();deleteSave('${key}');showLoadModal();" class="del-btn">删除</button>
+        </div>
+      `;
+      list.appendChild(div);
+    });
+  }
+
+  openModal('loadModal');
+}
+
+function showStatsModal() {
+  const content = document.getElementById('statsContent');
+  const winRate = stats.totalGames > 0
+    ? ((stats.wins / stats.totalGames) * 100).toFixed(1) + '%'
+    : 'N/A';
+
+  const currentStreakText = stats.currentStreak > 0
+    ? `连胜 ${stats.currentStreak}`
+    : stats.currentStreak < 0
+    ? `连败 ${Math.abs(stats.currentStreak)}`
+    : '无';
+
+  const avgMoves = stats.wins > 0 ? Math.round(stats.totalMoves / stats.totalGames) : 'N/A';
+  const avgTime = stats.totalGames > 0 ? formatTime(Math.round(stats.totalTime / stats.totalGames)) : 'N/A';
+
+  let html = `
+    <div class="stat-row"><span class="stat-label">总游戏场次</span><span class="stat-value">${stats.totalGames}</span></div>
+    <div class="stat-row"><span class="stat-label">胜利</span><span class="stat-value">${stats.wins}</span></div>
+    <div class="stat-row"><span class="stat-label">失败</span><span class="stat-value">${stats.losses}</span></div>
+    <div class="stat-row"><span class="stat-label">胜率</span><span class="stat-value">${winRate}</span></div>
+    <div class="stat-row"><span class="stat-label">当前连续</span><span class="stat-value">${currentStreakText}</span></div>
+    <div class="stat-row"><span class="stat-label">最高连胜</span><span class="stat-value">${stats.maxWinStreak}</span></div>
+    <div class="stat-row"><span class="stat-label">最高连败</span><span class="stat-value">${stats.maxLoseStreak}</span></div>
+    <div class="stat-row"><span class="stat-label">平均步数</span><span class="stat-value">${avgMoves}</span></div>
+    <div class="stat-row"><span class="stat-label">平均用时</span><span class="stat-value">${avgTime}</span></div>
+  `;
+
+  // By difficulty
+  html += '<h3 style="margin-top:16px;color:#1a6b3c;font-size:16px;">按难度统计</h3>';
+  [1,2,4].forEach(d => {
+    const dd = stats.byDifficulty[d];
+    const dWinRate = dd.games > 0 ? ((dd.wins / dd.games)*100).toFixed(1)+'%' : 'N/A';
+    const bestS = stats.bestScore[d] !== null ? stats.bestScore[d] : 'N/A';
+    const bestT = stats.bestTime[d] !== null ? formatTime(stats.bestTime[d]) : 'N/A';
+    html += `
+      <div style="margin-top:8px;font-weight:bold;color:#555;">${difficultyName(d)}</div>
+      <div class="stat-row"><span class="stat-label">场次 / 胜利</span><span class="stat-value">${dd.games} / ${dd.wins} (${dWinRate})</span></div>
+      <div class="stat-row"><span class="stat-label">最高分</span><span class="stat-value">${bestS}</span></div>
+      <div class="stat-row"><span class="stat-label">最快通关</span><span class="stat-value">${bestT}</span></div>
+    `;
+  });
+
+  content.innerHTML = html;
+  openModal('statsModal');
+}
+
+function confirmResetStats() {
+  if (confirm('确定要重置所有统计数据吗？此操作不可撤销。')) {
+    stats = defaultStats();
+    saveStats();
+    showStatsModal();
+    showToast('统计数据已重置');
+  }
+}
+
+function showHelpModal() {
+  openModal('helpModal');
+}
+
+function openModal(id) {
+  document.getElementById(id).classList.add('active');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('active');
+}
+
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) {
+      overlay.classList.remove('active');
+    }
+  });
+});
+
+// ============ Keyboard Shortcuts ============
+document.addEventListener('keydown', (e) => {
+  // Ctrl+Z: Undo
+  if (e.ctrlKey && e.key === 'z') {
+    e.preventDefault();
+    undoAction();
+    return;
+  }
+
+  // Ctrl+Y: Redo
+  if (e.ctrlKey && e.key === 'y') {
+    e.preventDefault();
+    redoAction();
+    return;
+  }
+
+  // Ctrl+S: Save
+  if (e.ctrlKey && e.key === 's') {
+    e.preventDefault();
+    const name = `快捷存档 ${new Date().toLocaleString()}`;
+    saveGame(name);
+    return;
+  }
+
+  // Ctrl+L: Load
+  if (e.ctrlKey && e.key === 'l') {
+    e.preventDefault();
+    showLoadModal();
+    return;
+  }
+
+  // Ctrl+N: New game
+  if (e.ctrlKey && e.key === 'n') {
+    e.preventDefault();
+    confirmNewGame();
+    return;
+  }
+
+  // Escape: Deselect or close modal
+  if (e.key === 'Escape') {
+    // Close any open modal
+    document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active'));
+    closeWin();
+    if (selectedCards) {
+      selectedCards = null;
+      render();
+    }
+  }
+});
+
+// ============ Utility ============
+function formatTime(seconds) {
+  const min = Math.floor(seconds / 60);
+  const sec = seconds % 60;
+  return String(min).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
+}
+
+function difficultyName(d) {
+  switch(d) {
+    case 1: return '简单(单色)';
+    case 2: return '中等(双色)';
+    case 4: return '困难(四色)';
+    default: return '未知';
+  }
+}
+
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => toast.classList.remove('show'), 2000);
+}
+
+// ============ Auto-move hint: double-click ============
+document.getElementById('columnsArea').addEventListener('dblclick', (e) => {
+  const cardEl = e.target.closest('.card');
+  if (!cardEl || cardEl.classList.contains('face-down')) return;
+
+  const colIndex = parseInt(cardEl.dataset.col);
+  const cardIndex = parseInt(cardEl.dataset.idx);
+
+  if (!canPickUp(colIndex, cardIndex)) return;
+
+  // Try to find best target
+  const card = gameState.columns[colIndex][cardIndex];
+  let bestTarget = -1;
+  let bestScore = -1;
+
+  for (let i = 0; i < 10; i++) {
+    if (i === colIndex) continue;
+    if (!canPlace(colIndex, cardIndex, i)) continue;
+
+    const targetCol = gameState.columns[i];
+    let score = 0;
+
+    if (targetCol.length > 0) {
+      const topCard = targetCol[targetCol.length - 1];
+      // Prefer same suit
+      if (topCard.suit === card.suit) score += 10;
+      // Prefer non-empty columns
+      score += 5;
+    } else {
+      // Empty column - low priority unless moving a King
+      score += 1;
+    }
+
+    if (score > bestScore) {
+      bestScore = score;
+      bestTarget = i;
+    }
+  }
+
+  if (bestTarget >= 0) {
+    moveCards(colIndex, cardIndex, bestTarget);
+  }
+});
+
+// ============ Start ============
+init();
+</script>
+</body>
+</html>
