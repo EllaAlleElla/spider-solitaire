@@ -7,4 +7,4 @@ Ctrl+Y 重做
 Ctrl+S 存档
 Ctrl+L 读档
 Ctrl+N 新游戏
-也可以通过这个链接在线玩https://github.com/EllaAlleElla/spider-solitaire/蜘蛛纸牌.html
+也可以通过这个链接在线玩https://github.com/EllaAlleElla/spider-solitaire/main.html
